@@ -1,4 +1,20 @@
-// Test of two AS5600 sensors on Pro Micro (32u4)
+// Tabletto — dual-licensed under AGPLv3 for noncommercial use, or a separate
+// commercial license for manufacturing/sale. See LICENSE and
+// LICENSE-COMMERCIAL.md in the repo root, or contact the author.
+//
+// Copyright (C) 2026 Dexon Rax
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+ 
+
 // Bus A: hardware I2C (pins 2/3)
 // Bus B: SoftWire (pins 4/5) - requires "SoftWire" library (Bill Greiman)
 //   Library Manager -> search for "SoftWire"

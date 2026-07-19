@@ -177,4 +177,9 @@ No CNC machining or laser cutting is required.
 
 # License
 
-Feel free to build, modify, and improve Tabletto. Contributions, bug reports, and pull requests are always welcome. 🎉
+Copyright (C) 2026 Dexon Rax
+
+💡 Want to manufacture or sell Tabletto commercially?
+Tabletto is free and open source (AGPLv3) for personal and noncommercial
+use. Interested in manufacturing Tabletto commercially? Contact me for
+licensing — see LICENSE-COMMERCIAL.md.
