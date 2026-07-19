@@ -27,7 +27,7 @@ Tabletto was designed with one goal in mind: **the lowest possible input latency
 
 Tabletto uses a **SCARA (Selective Compliance Assembly Robot Arm)** mechanism.
 
-Two **AS5600 magnetic rotary encoders** measure the angle of each arm joint. The Arduino Pro Micro continuously reads both encoders, calculates the pen position using forward kinematics, and sends the cursor position to the PC as a USB HID device.
+Two **AS5600 magnetic rotary encoders** measure the angle of each arm joint. The Arduino Pro Micro continuously reads both encoders, then python driver calculates the pen position using forward kinematics, and sends the maps the cursor position to the screen.
 
 Because the sensors provide high-resolution angle measurements and the mechanism has very little moving mass, the result is an extremely responsive pointing device well suited for rhythm games like osu!.
 
