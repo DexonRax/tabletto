@@ -85,6 +85,7 @@ Buck Converter VO
 
 All GND pins are connected together.
 ```
+### **DIR and GND on the sensors MUST be connected**
 
 The buck converter steps the Pro Micro's supply down to **3.3V** for both AS5600 sensors.
 
