@@ -1,25 +1,27 @@
-# Tabletto
+# Tabletto V1S
 
-> A ridiculously fast DIY osu! "tablet" built around a **SCARA arm** mechanism, powered by an **Arduino Pro Micro** and **dual AS5600 magnetic rotary encoders**.
+> A ridiculously fast DIY osu! "tablet" built around a **SCARA arm** mechanism, powered by an **RP2040** (RP2040-Zero) and **dual AS5600 magnetic rotary encoders**.
 
-Tabletto was designed with one goal in mind: **the lowest possible input latency** using inexpensive, easy-to-source components and fully 3D printed mechanics.
+Tabletto V1S was designed with one goal in mind: **the lowest possible input latency** using inexpensive, easy-to-source components, fully 3D printed mechanics, and custom open-source PCBs.
 
 ---
 
 # Gallery
 
-![Tabletto image](https://dexonrax.s-ul.eu/F8z8WAlE)
+![Tabletto image](https://dexonrax.s-ul.eu/iLvSJvkM)
 
 ---
 
 # Features
 
-* ⚡ **600–700 Hz polling rate**
+* ⚡ **~1000 Hz report rate** (1 ms USB HID polling)
 * 🎯 Minimal cursor jitter
 * 🚀 Faster than most commercial graphics tablets
 * 🖨️ Fully 3D printable mechanical design
-* 🔩 Only **2 M3 screws** hold the entire assembly together
-* 🪶 Very low pen friction using a single mouse skate
+* 🔩 Custom open-source **KiCad PCBs** (base + arm sensor board)
+* 🧠 On-device forward kinematics — no Python needed, works with **OpenTabletDriver**
+* 🔘 Physical button: **short press** toggles the tablet, **hold 3 s** to calibrate
+* 💾 Calibration stored in the RP2040's flash, survives power cycles
 
 ---
 
@@ -27,7 +29,7 @@ Tabletto was designed with one goal in mind: **the lowest possible input latency
 
 Tabletto uses a **SCARA (Selective Compliance Assembly Robot Arm)** mechanism.
 
-Two **AS5600 magnetic rotary encoders** measure the angle of each arm joint. The Arduino Pro Micro continuously reads both encoders, then python driver calculates the pen position using forward kinematics, and sends the maps the cursor position to the screen.
+Two **AS5600 magnetic rotary encoders** measure the angle of each arm joint — one lives on the base PCB, the other on a small board at the elbow. The RP2040 firmware reads both encoders over two separate I2C buses and computes the pen position with forward kinematics, then sends it to the host as a vendor-defined HID report.
 
 Because the sensors provide high-resolution angle measurements and the mechanism has very little moving mass, the result is an extremely responsive pointing device well suited for rhythm games like osu!.
 
@@ -37,117 +39,95 @@ Because the sensors provide high-resolution angle measurements and the mechanism
 
 Required components:
 
-| Quantity | Part                           |
-| -------- | ------------------------------ |
-| 1        | Arduino Pro Micro              |
-| 2        | AS5600 Magnetic Rotary Encoder |
-| 2        | F693ZZ 3x8x4mm 8mm Bearings    |
-| 1        | 3.3V Buck Converter            |
-| 2        | M3 Screws                      |
-| 1        | 8mm (or smaller) Mouse Skate   |
-| —        | Magnets - come with AS5600     |
-| —        | 3D Printed Parts               |
+| Quantity | Part                            |
+| -------- | ------------------------------- |
+| 1        | RP2040-Zero (or similar module) |
+| 2        | AS5600 Magnetic Rotary Encoder  |
+| 2        | F693ZZ 3x8x4mm Bearings         |
+| 4        | 4.7kΩ Resistor                  |
+| 1        | 100nF Capacitor                 |
+| 1        | JST XH 2.54mm straight connector|
+| 1        | JST XH 2.54mm male cable        |
+| 1        | Keyboard Switch                 |
+| 4        | 10mm M3 Screws                  |
+| —        | Magnets - come with AS5600      |
+| —        | 3D Printed Parts                |
+| —        | PCBs - from `V1S/pcb`           |
+
+Both boards have **3.2 mm M3 mounting holes**.
 
 ---
 
-# Wiring
+# PCBs
 
-## Encoder #1
+The electronic design is open source and lives in [V1S/pcb](V1S/pcb):
 
-| AS5600 | Pro Micro |
-| ------ | --------- |
-| SDA    | Pin 2     |
-| SCL    | Pin 3     |
+* **`pcb/base`** — base board: RP2040-Zero module, one AS5600, 4.7kΩ I2C pull-ups, calibration button, and a 4-pin connector to the arm board.
+* **`pcb/arm`** — elbow board: the second AS5600 with a 100 nF decoupling cap, connected over a short 4-pin cable.
 
----
+Open the `.kicad_sch` / `.kicad_pcb` files in KiCad 8+ and order them from any PCB fab (both boards are two-layer).
 
-## Encoder #2
+## Firmware pin mapping
 
-| AS5600 | Pro Micro |
-| ------ | --------- |
-| SDA    | Pin 4     |
-| SCL    | Pin 5     |
-
----
-
-## Power
-
-```
-Pro Micro VCC
-        │
-        ▼
-Buck Converter VI
-
-Buck Converter VO
-        │
-        ├────────► AS5600 #1 VCC
-        └────────► AS5600 #2 VCC
-
-All GND pins are connected together.
-```
-### **DIR and GND on the sensors MUST be connected**
-
-The buck converter steps the Pro Micro's supply down to **3.3V** for both AS5600 sensors.
-
-Place magnets which came with the AS5600s on the top of the bearings.
-
-More in-depth instructions coming soon.
+| Function        | Pin  |
+| --------------- | ---- |
+| I2C0 SDA (base) | GP0  |
+| I2C0 SCL (base) | GP1  |
+| I2C1 SDA (arm)  | GP2  |
+| I2C1 SCL (arm)  | GP3  |
+| Calibration btn | GP4  |
 
 ---
 
-# Assembly
+# Firmware
 
-The entire frame is assembled using only **two M3 10mm screws**.
+Located in [V1S/firmware](V1S/firmware). Built with the **Raspberry Pi Pico SDK** and **TinyUSB**.
 
-Install:
+## Flashing (easiest)
 
-* both F693ZZ bearings
-* the two AS5600 sensors (preferably a set with magnets)
-* the printed arms
-* the Pro Micro
-* the 3.3V buck converter
+A precompiled build is included at `V1S/firmware/precompiled/tabletto.uf2`:
 
-For the pen holder, attach **a single dot mouse skate** to the bottom.
+1. Plug the RP2040-Zero into USB while holding **BOOT**
+2. Drag and drop `tabletto.uf2` onto the USB drive that appears
+3. Done — the device enumerates as a HID tablet (VID `0x1209`, PID `0x0001`)
 
-> **Important:** The mouse skate should be **8 mm or smaller**. 
+## Building from source
+
+Requires the Pico SDK and CMake:
+
+```
+cd V1S/firmware
+cmake -B build -DPICO_SDK_PATH=/path/to/pico-sdk
+make -C build
+```
+
+The resulting `build/tabletto.uf2` can be flashed as above.
 
 ---
 
-# Software installation (Linux)
+# Driver
 
-**Windows version a WIP**
+Tabletto exposes a standard vendor-defined HID report, so **no custom driver is needed** — just use [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver).
 
-Upload the Arduino firmware to the Pro Micro.
+Import the configuration from `V1S/driver/OpenTabletDriver Configuration/TablettoV1S.json` 
+into OpenTabletDriver (restart needed): 
+- Linux: ~/.local/share/OpenTabletDriver/Configurations/ (create it if missing: mkdir -p ~/.local/share/OpenTabletDriver/Configurations)
+- Windows: %LOCALAPPDATA%\OpenTabletDriver\Configurations
 
-Open the driver folder and use commands:
-
-```
-python -m venv venv
-pip install -r requirements.txt
-```
-Once connected over USB.
-
-```
-source venv/bin/activate.sh
-python tabletto_driver.py
-```
-Ensure that your Arduino Pro Micro occupies port /dev/ttyACM0,
-
-if not, either change that in the code (line 12) or try replugging the device.
-
-To check what port your Arduino occupies you can use.
-
-```
-arduino-cli board list
-```
+It defines:
+* Work area: **180 × 112.5 mm** (X 0–18000, Y 0–11250, 0.01 mm units)
+* Input report length: 9 bytes
+* `libinputoverride: 1` for reliable Linux behavior
 
 ---
 
 # Calibration
 
-Once the driver is running pull the arm straight to the right and press CTRL+2
+1. With the tablet connected, **pull the arm straight down** (toward you), so both sensors read their reference position.
+2. **Hold the button for 3 seconds.**
+3. Short-press the button at any time to toggle the tablet on/off.
 
-Because this tablet doesn't know when the pen is lifted up you use CTRL+1 to enable/disable it
+Direction tuning lives in the firmware (`X_DIR` / `Y_DIR` in `main.c`) if the axes ever need flipping.
 
 ---
 
@@ -167,11 +147,31 @@ Advantages include:
 
 # 3D Printing
 
-All .stl files can be found in the *models* directory
+All `.stl` files can be found in [V1S/models](V1S/models):
 
-Every structural component is designed to be **3D printed**.
+| File                  | Purpose                           |
+| --------------------- | --------------------------------- |
+| `arm1_up.stl`         | Arm segment 1 (magnet-up variant) |
+| `arm1_down.stl`       | Arm segment 1 (magnet-down variant) |
+| `arm2.stl`            | Arm segment 2 (elbow to pen)      |
+| `base_down_workarea.stl` | Bottom side of the base |
+| `base_up_debug.stl`   | Upper side of the base (debug has a cutout for RP2040 buttons) |
+| `workarea.stl`        | Flat work area plate              |
+| `offset_nib_3.6mm.stl` | Nut-like offset for spacing (6 needed)    |
 
-No CNC machining or laser cutting is required.
+Every structural component is designed to be **3D printed** — no CNC machining or laser cutting required. Place the magnets that came with the AS5600s on top of the bearings.
+
+---
+
+# Repository layout
+
+```
+V1S/
+├── driver/    OpenTabletDriver configuration (JSON)
+├── firmware/  RP2040 firmware (Pico SDK + TinyUSB) + precompiled UF2
+├── models/    3D printable STL files
+└── pcb/       KiCad sources: base board + arm sensor board
+```
 
 ---
 
@@ -179,7 +179,9 @@ No CNC machining or laser cutting is required.
 
 Copyright (C) 2026 Dexon Rax
 
-💡 Want to manufacture or sell Tabletto commercially?
 Tabletto is free and open source (AGPLv3) for personal and noncommercial
-use. Interested in manufacturing Tabletto commercially? Contact me for
-licensing — see LICENSE-COMMERCIAL.md.
+use — this covers the RP2040 firmware, the OpenTabletDriver configuration,
+the 3D printable models, and the KiCad PCB sources.
+
+💡 Want to manufacture or sell Tabletto commercially, or use it in a
+closed product? Contact me for licensing — see LICENSE-COMMERCIAL.md.

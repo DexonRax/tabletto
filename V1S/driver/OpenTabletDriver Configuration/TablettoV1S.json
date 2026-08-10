@@ -1,0 +1,27 @@
+{
+  "Name": "Tabletto V1S",
+  "Specifications": {
+    "Digitizer": {
+      "Width": 180,
+      "Height": 112.5,
+      "MaxX": 18000,
+      "MaxY": 11250
+    },
+    "Pen": {
+      "MaxPressure": 65535,
+      "ButtonCount": 1
+    }
+  },
+  "DigitizerIdentifiers": [
+    {
+      "VendorID": 4617,
+      "ProductID": 1,
+      "InputReportLength": 9,
+      "ReportParser": "OpenTabletDriver.Plugin.Tablet.TabletReportParser"
+    }
+  ],
+  "Attributes": {
+    "libinputoverride": "1"
+  }
+}
+

@@ -1,0 +1,12 @@
+# KiCad
+*.kicad_prl
+_autosave-*.kicad_pcb
+_autosave-*.kicad_sch
+
+# Firmware build
+V1S/firmware/build/
+
+# Editors / OS
+.vscode/
+*.swp
+.DS_Store
