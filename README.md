@@ -14,12 +14,12 @@ Tabletto V1S was designed with one goal in mind: **the lowest possible input lat
 
 # Features
 
-* ⚡ **~1000 Hz report rate** (1 ms USB HID polling)
+* ⚡ **1000 Hz report rate** (1 ms USB HID polling)
 * 🎯 Minimal cursor jitter
 * 🚀 Faster than most commercial graphics tablets
 * 🖨️ Fully 3D printable mechanical design
 * 🔩 Custom open-source **KiCad PCBs** (base + arm sensor board)
-* 🧠 On-device forward kinematics — no Python needed, works with **OpenTabletDriver**
+* 🧠 On-device forward kinematics — standalone, works with **OpenTabletDriver**
 * 🔘 Physical button: **short press** toggles the tablet, **hold 3 s** to calibrate
 * 💾 Calibration stored in the RP2040's flash, survives power cycles
 
