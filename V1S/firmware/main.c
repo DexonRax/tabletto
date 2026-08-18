@@ -35,6 +35,55 @@
 
 #define AS5600_ADDR        0x36
 #define REG_RAW_ANGLE_H    0x0C
+#define I2C_TIMEOUT_US     1000
+
+static void i2c_recover(i2c_inst_t *bus) {
+    uint sda_pin = (bus == i2c0) ? I2C0_SDA_PIN : I2C1_SDA_PIN;
+    uint scl_pin = (bus == i2c0) ? I2C0_SCL_PIN : I2C1_SCL_PIN;
+
+    i2c_deinit(bus);
+
+    gpio_init(scl_pin);
+    gpio_set_dir(scl_pin, GPIO_OUT);
+    gpio_put(scl_pin, 1);
+
+    gpio_init(sda_pin);
+    gpio_set_dir(sda_pin, GPIO_IN);
+    gpio_pull_up(sda_pin);
+
+    for (int i = 0; i < 9; i++) {
+        if (gpio_get(sda_pin)) break;
+        gpio_put(scl_pin, 0);
+        busy_wait_us_32(5);
+        gpio_put(scl_pin, 1);
+        busy_wait_us_32(5);
+    }
+
+    gpio_set_dir(sda_pin, GPIO_OUT);
+    gpio_put(sda_pin, 0);
+    gpio_put(scl_pin, 1);
+    busy_wait_us_32(5);
+    gpio_put(sda_pin, 1);
+
+    i2c_init(bus, I2C_BAUD);
+    gpio_set_function(sda_pin, GPIO_FUNC_I2C);
+    gpio_set_function(scl_pin, GPIO_FUNC_I2C);
+}
+
+static bool as5600_read_raw(i2c_inst_t *bus, uint16_t *out) {
+    uint8_t reg = REG_RAW_ANGLE_H;
+    uint8_t buf[2];
+    if (i2c_write_timeout_us(bus, AS5600_ADDR, &reg, 1, true, I2C_TIMEOUT_US) != 1) {
+        i2c_recover(bus);
+        return false;
+    }
+    if (i2c_read_timeout_us(bus, AS5600_ADDR, buf, 2, false, I2C_TIMEOUT_US) != 2) {
+        i2c_recover(bus);
+        return false;
+    }
+    *out = ((uint16_t)(buf[0] & 0x0F) << 8) | buf[1];
+    return true;
+}
 
 #define LINK1_MM 77.0f
 #define LINK2_MM 77.0f
@@ -49,15 +98,6 @@
 
 #define X_DIR (-1.0f)
 #define Y_DIR ( 1.0f)
-
-static bool as5600_read_raw(i2c_inst_t *bus, uint16_t *out) {
-    uint8_t reg = REG_RAW_ANGLE_H;
-    uint8_t buf[2];
-    if (i2c_write_blocking(bus, AS5600_ADDR, &reg, 1, true) != 1) return false;
-    if (i2c_read_blocking(bus, AS5600_ADDR, buf, 2, false) != 2) return false;
-    *out = ((uint16_t)(buf[0] & 0x0F) << 8) | buf[1];
-    return true;
-}
 
 static inline uint16_t wrap12(int32_t v) {
     v %= 4096;
