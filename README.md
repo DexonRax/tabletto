@@ -50,7 +50,7 @@ Required components:
 | 1        | JST XH 2.54mm male cable        |
 | 1        | Keyboard Switch                 |
 | 4        | 10mm M3 Screws                  |
-| —        | Magnets - come with AS5600      |
+| 2        | 4x3mm Diametral magnets         |
 | —        | 3D Printed Parts                |
 | —        | PCBs - from `V1S/pcb`           |
 
