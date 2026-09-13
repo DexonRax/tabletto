@@ -43,7 +43,7 @@ Required components:
 | -------- | ------------------------------- |
 | 1        | RP2040-Zero (or similar module) |
 | 2        | AS5600 Magnetic Rotary Encoder  |
-| 2        | F693ZZ 3x8x4mm Bearings         |
+| 2        | MR128ZZ 8x12x3.5mm Bearings     |
 | 4        | 4.7kΩ Resistor                  |
 | 1        | 100nF Capacitor                 |
 | 1        | JST XH 2.54mm straight connector|
